@@ -1,0 +1,13 @@
+.env
+venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.venv 
+db.sqlite3
+*.log
+#django migrations
+migrations/
+media
