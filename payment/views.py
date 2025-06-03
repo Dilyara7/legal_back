@@ -19,7 +19,7 @@ Configuration.api_url    = 'https://api.yookassa.ru/v3/'
 Configuration.account_id = settings.YOOKASSA_SHOP_ID
 Configuration.secret_key = settings.YOOKASSA_SECRET_KEY
 
-REQUEST_FEE = getattr(settings, 'REQUEST_FEE', Decimal('20.00'))
+REQUEST_FEE = getattr(settings, 'REQUEST_FEE', Decimal('3932.00'))
 
 class PaymentRequired(APIException):
     status_code = status.HTTP_402_PAYMENT_REQUIRED

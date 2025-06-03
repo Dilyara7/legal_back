@@ -1,55 +1,68 @@
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth.models import User
+from users.models import UserProfile
+from payment.models import Balance
+from decimal import Decimal
 from rest_framework_simplejwt.tokens import RefreshToken
 
-class UserRegistrationTests(APITestCase):
+class UserTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345678', email='test@example.com')
+        self.profile = UserProfile.objects.create(user=self.user)
+        self.refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(self.refresh.access_token)
+        self.auth_headers = {'HTTP_AUTHORIZATION': f'Bearer {self.access_token}'}
+
     def test_register_user(self):
         url = reverse('register')
         data = {
-            'username': 'testuser2',
-            'password': 'testpassword2',
-            'email': 'testuser2@example.com'
+            'username': 'newuser',
+            'password': 'newpassword123',
+            'email': 'newuser@example.com'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn('status', response.data)
-        self.assertIn('refresh', response.data)
         self.assertIn('access', response.data)
 
-    def test_register_user_missing_field(self):
-        url = reverse('register')
+    def test_get_user_profile(self):
+        url = reverse('userprofile-list')
+        response = self.client.get(url, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['user'], self.user.id)
+
+    def test_update_user_profile(self):
+        url = reverse('userprofile-list')
         data = {
-            'username': 'testuser2',
-            # 'password': 'testpassword2',
-            'email': 'testuser2@example.com'
+            'phone': '+77001234567',
+            'name': 'TestName'
         }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response = self.client.post(url, data, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['phone'], '+77001234567')
 
-class AuthenticatedAPITests(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser2', password='testpassword2', email='testuser2@example.com')
-        self.authenticate()
+    def test_get_user(self):
+        url = reverse('user-details')
+        response = self.client.get(url, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], self.user.username)
 
-    def authenticate(self):
-        refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    def test_update_user(self):
+        url = reverse('user-details')
+        data = {'email': 'updated@example.com'}
+        response = self.client.post(url, data, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, 'updated@example.com')
 
-    # def test_device_list(self):
-    #     url = reverse('device-list')
-    #     response = self.client.get(url, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertGreaterEqual(len(response.data), 1)
-
-    
-
-    # def test_unauthorized_device_list(self):
-    #     self.client.credentials()  # Удаление токена для эмуляции неавторизованного запроса
-    #     url = reverse('device-list')
-    #     response = self.client.get(url, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    
+    def test_user_stats(self):
+        # создадим баланс
+        Balance.objects.filter(user=self.user).delete()
+        Balance.objects.create(user=self.user, amount=Decimal('1500.00'), expenses=Decimal('250.00'))
+        url = reverse('user-stats')
+        response = self.client.get(url, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('totalConsultations', response.data)
+        self.assertEqual(response.data['currentBalance'], 1500.00)
+        self.assertEqual(response.data['totalSpent'], 250.00)

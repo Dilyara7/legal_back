@@ -31,16 +31,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
-    "https://177e-85-117-98-94.ngrok-free.app",
     "http://localhost:3000",
-    "http://localhost:3001",
-    "https://v0.dev",
-    "https://kzmkmvkabxm560yxaedz.lite.vusercontent.net",
-    "https://*.lite.vusercontent.net",
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://kzmkmvkabxm560yxaedz.lite.vusercontent.net",
 ]
 # Application definition
 
@@ -124,12 +118,17 @@ DATABASES = {
         "HOST": "dimicoe6.beget.tech",
         "PORT": "3306",
     },
-    # 'test': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'test_db.sqlite3',
-    # },
+    'test': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'test_db.sqlite3',
+    },
 }
-
+import sys
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'test_db.sqlite3',
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
