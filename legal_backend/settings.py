@@ -63,7 +63,7 @@ YOOKASSA_SHOP_ID = '1087682'
 YOOKASSA_SECRET_KEY = 'test_6EkTwu-NMYaymEnFAS2dLkHpkvtoXEW9ur2HwIltOZM'
 from decimal import Decimal
 # Стоимость одного API-запроса в рублях
-REQUEST_FEE = Decimal('20.00')  
+REQUEST_FEE = Decimal('3920.00')  
 FRONTEND_URL="http://localhost:3000/profile/balance"
 
 
@@ -113,10 +113,10 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # },
     "default": {
-        "OPTIONS": {
-                    "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-                    "sql_mode": "STRICT_TRANS_TABLES",
-                   },
+        # "OPTIONS": {
+        #             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        #             "sql_mode": "STRICT_TRANS_TABLES",
+        #            },
         "ENGINE": "django.db.backends.mysql",
         "NAME": "dimicoe6_dj1",
         "USER": "dimicoe6_dj1",
@@ -186,7 +186,7 @@ REST_FRAMEWORK = {
     ],
 }
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,

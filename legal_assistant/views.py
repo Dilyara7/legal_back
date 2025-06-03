@@ -13,7 +13,7 @@ from payment.models import Balance
 from decimal import Decimal
 from django.conf import settings
 from .serializers import TemplateDocumentSerializer
-REQUEST_FEE = getattr(settings, 'REQUEST_FEE', Decimal('20.00'))
+REQUEST_FEE = getattr(settings, 'REQUEST_FEE', Decimal('3932.00'))
 
 from .models import ChatDialog, ChatMessage,TemplateDocument
 
@@ -39,16 +39,7 @@ def chat_message_view(request):
       client = OpenAI(...)
       client.responses.create(...)
     """
-    try:
-        balance = request.user.balance
-    except Balance.DoesNotExist:
-        balance = Balance.objects.create(user=request.user)
-    if balance.amount < REQUEST_FEE:
-        return Response(
-            {'detail': 'Недостаточно средств для выполнения запроса'},
-            status=status.HTTP_402_PAYMENT_REQUIRED
-        )
-    balance.deduct(REQUEST_FEE)
+    
     user = request.user
     dialog_id = request.data.get('dialog_id')
     content = request.data.get('content')
@@ -74,6 +65,16 @@ def chat_message_view(request):
 
     # --- Шаг 1: Создание или получение диалога ---
     if not dialog_id:
+        try:
+            balance = request.user.balance
+        except Balance.DoesNotExist:
+            balance = Balance.objects.create(user=request.user)
+        if balance.amount < REQUEST_FEE:
+            return Response(
+                {'detail': 'Недостаточно средств для выполнения запроса'},
+                status=status.HTTP_402_PAYMENT_REQUIRED
+            )
+        balance.deduct(REQUEST_FEE)
         dialog_id = str(uuid.uuid4())  # Если не пришёл, генерируем
         dialog = ChatDialog.objects.create(
             id=dialog_id,
@@ -108,6 +109,7 @@ def chat_message_view(request):
                 )
                 dialog.name = response.output_text
                 dialog.save()
+                
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
