@@ -149,7 +149,13 @@ def chat_message_view(request):
         response = client.responses.create(
             model="gpt-4o",                  # Как указано в примере
             input=conversation_text,         # Весь «промпт» — включая системное сообщение и историю
-            tools=[{"type": "web_search_preview"}],
+            tools=[{"type": "web_search_preview","domains": [
+            "adilet.zan.kz",
+            "online.zakon.kz",
+            "parlam.kz",
+            "egov.kz",
+            "gov.kz"
+        ],}],
             temperature=0.7,
             # max_tokens=1000,
         )
